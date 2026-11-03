@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  failedLoginCount Int @default(0)
+  lockedUntil DateTime?
+  auditEvents AdminAuditEvent[]
+}
+
+model AdminAuditEvent {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  recordId  String?
+  createdAt DateTime @default(now())
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt])
+}
+
+model StudentResult {
+  id             String   @id @default(cuid())
+  givenName      String
+  familyName     String
+  identification String
+  dateOfBirth    DateTime @db.Date
+  storageKey     String   @unique
+  originalName   String
+  mimeType       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([identification, dateOfBirth])
+  @@index([familyName, givenName])
+}
