@@ -1,9 +1,11 @@
+
 import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.AWS_REGION;
@@ -20,7 +22,7 @@ function getS3Client() {
     !accessKeyId ||
     !secretAccessKey
   ) {
-    throw new Error("Supabase private storage is not configured.");
+    throw new Error("Supabase S3 storage configuration is incomplete.");
   }
 
   return new S3Client({
@@ -53,21 +55,21 @@ export async function storeDocument(
   bytes: Uint8Array,
   contentType: string
 ) {
-  await getS3Client().send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: bytes,
-      ContentType: contentType,
-    })
-  );
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: bytes,
+    ContentType: contentType,
+  });
+
+  await getS3Client().send(command);
 }
 
 export async function deleteDocument(key: string) {
-  await getS3Client().send(
-    new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    })
-  );
+  const command = new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: key,
+  });
+
+  await getS3Client().send(command);
 }
